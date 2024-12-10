@@ -36,3 +36,4 @@ ehthumbs.db
 # Phaser build files
 dist/
 build/
+out/
