@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.85.2/dist/phaser-arcade-physics.min.js"></script>
+</head>
+<body>
+
+    <script>
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: false,
+        },
+    },
+    scene: {
+        preload,
+        create,
+        update,
+    },
+};
+
+const game = new Phaser.Game(config);
+
+let player;
+let arrows;
+let score = 0;
+let scoreText;
+
+function preload() {
+    this.load.image('player', 'path_to_player_image.png'); // 플레이어 이미지
+    this.load.image('arrow', 'path_to_arrow_image.png');   // 화살 이미지
+}
+
+function create() {
+    // 원형 필드 (참고용)
+    this.add.circle(400, 300, 250, 0x6666ff, 0.2);
+
+    // 플레이어 생성
+    player = this.physics.add.sprite(400, 300, 'player').setCollideWorldBounds(true);
+
+    // 화살 그룹
+    arrows = this.physics.add.group();
+
+    // 화살과 플레이어 충돌 처리
+    this.physics.add.overlap(player, arrows, hitArrow, null, this);
+
+    // 점수 표시
+    scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
+
+    // 화살 생성 루프
+    this.time.addEvent({
+        delay: 1000, // 1초마다 화살 생성
+        callback: spawnArrow,
+        callbackScope: this,
+        loop: true,
+    });
+
+    // 10초마다 화살이 하나씩 추가로 생성되도록 설정
+    setInterval(() => {
+        // 화살 생성 루프
+        this.time.addEvent({
+            delay: 1000, // 1초마다 화살 생성
+            callback: spawnArrow,
+            callbackScope: this,
+            loop: true,
+        });
+    }, 10000);
+
+    // 입력 처리
+    cursors = this.input.keyboard.createCursorKeys();
+}
+
+function update() {
+    // 플레이어 이동
+    if (cursors.left.isDown) {
+        player.setVelocityX(-200);
+    } else if (cursors.right.isDown) {
+        player.setVelocityX(200);
+    } else {
+        player.setVelocityX(0);
+    }
+
+    if (cursors.up.isDown) {
+        player.setVelocityY(-200);
+    } else if (cursors.down.isDown) {
+        player.setVelocityY(200);
+    } else {
+        player.setVelocityY(0);
+    }
+}
+
+function spawnArrow() {
+    // 원 바깥에서 화살 생성
+    const angle = Phaser.Math.Between(0, 360);
+    const x = 400 + Math.cos(Phaser.Math.DegToRad(angle)) * 300;
+    const y = 300 + Math.sin(Phaser.Math.DegToRad(angle)) * 300;
+
+    const arrow = arrows.create(x, y, 'arrow');
+
+    // 플레이어를 향한 속도로 화살 이동
+    const velocity = this.physics.velocityFromRotation(
+        Phaser.Math.Angle.Between(x, y, 400, 300),
+        200
+    );
+    arrow.setVelocity(velocity.x, velocity.y);
+}
+
+function hitArrow(player, arrow) {
+    // 충돌 처리
+    this.physics.pause();
+    player.setTint(0xff0000);
+    scoreText.setText('Game Over');
+}
+
+    </script>
+
+</body>
+</html>
