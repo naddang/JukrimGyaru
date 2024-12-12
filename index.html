@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>모 피하기</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.85.2/dist/phaser-arcade-physics.min.js"></script>
 </head>
 <body>
@@ -21,102 +22,183 @@ const config = {
         create,
         update,
     },
+    backgroundColor: '#3498db'
 };
 
 const game = new Phaser.Game(config);
 
 let player;
-let arrows;
+let bullets;
 let score = 0;
+let lastUpdateTime = 0;
 let scoreText;
+let cursors;
+let circleCenter;
+let circleRadius;
+let isGameOver = false;
+let delay = 1000;
 
 function preload() {
-    this.load.image('player', 'path_to_player_image.png'); // 플레이어 이미지
-    this.load.image('arrow', 'path_to_arrow_image.png');   // 화살 이미지
+    this.load.spritesheet('player', './assets/images/character/motaku.png', { frameWidth: 32, frameHeight: 32 }); // 플레이어 이미지
+    this.load.spritesheet('moyaji', './assets/images/character/moyaji.png', { frameWidth: 60, frameHeight: 60 });   // 화살 이미지
 }
 
 function create() {
     // 원형 필드 (참고용)
     this.add.circle(400, 300, 250, 0x6666ff, 0.2);
 
+    // 원의 중심과 반지름
+    circleCenter = { x: 400, y: 300 };
+    circleRadius = 220;
+
     // 플레이어 생성
     player = this.physics.add.sprite(400, 300, 'player').setCollideWorldBounds(true);
+    player.setScale(1);
+
+    // 애니메이션 정의
+    this.anims.create({
+        key: 'walk',
+        frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    // 애니메이션 정의
+    this.anims.create({
+        key: 'roll',
+        frames: this.anims.generateFrameNumbers('moyaji', { start: 0, end: 15 }),
+        frameRate: 30,
+        repeat: -1
+    });
 
     // 화살 그룹
-    arrows = this.physics.add.group();
+    bullets = this.physics.add.group();
 
     // 화살과 플레이어 충돌 처리
-    this.physics.add.overlap(player, arrows, hitArrow, null, this);
+    this.physics.add.overlap(player, bullets, hitArrow, null, this);
 
     // 점수 표시
     scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
 
     // 화살 생성 루프
     this.time.addEvent({
-        delay: 1000, // 1초마다 화살 생성
-        callback: spawnArrow,
+        delay: delay, // 1초마다 화살 생성
+        callback: spawnBullet,
         callbackScope: this,
-        loop: true,
+        loop: !isGameOver,
     });
 
     // 10초마다 화살이 하나씩 추가로 생성되도록 설정
     setInterval(() => {
-        // 화살 생성 루프
+        delay -= 50
         this.time.addEvent({
-            delay: 1000, // 1초마다 화살 생성
-            callback: spawnArrow,
+            delay: delay, // 1초마다 화살 생성
+            callback: spawnBullet,
             callbackScope: this,
-            loop: true,
+            loop: !isGameOver,
         });
-    }, 10000);
+    }, 5000);
 
     // 입력 처리
     cursors = this.input.keyboard.createCursorKeys();
 }
 
-function update() {
+function update(time, delta) {
+    if (isGameOver) {
+        return;
+    }
+
+    player.anims.play('walk', true);
+    bullets.children.iterate(function (bullet) {
+        bullet.anims.play('roll', true);
+    });
     // 플레이어 이동
+    const speed = 400; // 속도 조정
+
+    // 총알의 움직임을 업데이트
+    bullets.children.iterate(function (bullet) {
+        if (bullet) {
+            // 총알이 화면 밖으로 나가면 제거
+            if (bullet.x < 0 || bullet.x > 800 || bullet.y < 0 || bullet.y > 600) {
+                bullet.destroy();
+            }
+        }
+    });
+
     if (cursors.left.isDown) {
-        player.setVelocityX(-200);
+        player.setVelocityX(-speed);
     } else if (cursors.right.isDown) {
-        player.setVelocityX(200);
+        player.setVelocityX(speed);
     } else {
         player.setVelocityX(0);
     }
 
     if (cursors.up.isDown) {
-        player.setVelocityY(-200);
+        player.setVelocityY(-speed);
     } else if (cursors.down.isDown) {
-        player.setVelocityY(200);
+        player.setVelocityY(speed);
     } else {
         player.setVelocityY(0);
     }
-}
 
-function spawnArrow() {
-    // 원 바깥에서 화살 생성
+    // 플레이어가 원 밖으로 나가지 않도록 제한
+    const dx = player.x - circleCenter.x;
+    const dy = player.y - circleCenter.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > circleRadius) {
+        const angle = Math.atan2(dy, dx);
+        player.x = circleCenter.x + circleRadius * Math.cos(angle);
+        player.y = circleCenter.y + circleRadius * Math.sin(angle);
+    }
+
+    // 점수 증가 로직
+    if (time - lastUpdateTime >= 10) { // 0.01초마다 점수 증가
+        score += 1;
+        scoreText.setText('Score: ' + score);
+        lastUpdateTime = time;
+    }
+}
+function spawnBullet() {
+    if (isGameOver) {
+        return;
+    }
+
+    // 원 바깥에서 총알 생성
     const angle = Phaser.Math.Between(0, 360);
-    const x = 400 + Math.cos(Phaser.Math.DegToRad(angle)) * 300;
-    const y = 300 + Math.sin(Phaser.Math.DegToRad(angle)) * 300;
+    const x = circleCenter.x + Math.cos(Phaser.Math.DegToRad(angle)) * (circleRadius + 50);
+    const y = circleCenter.y + Math.sin(Phaser.Math.DegToRad(angle)) * (circleRadius + 50);
 
-    const arrow = arrows.create(x, y, 'arrow');
+    const bullet = bullets.create(x, y, 'moyaji');
+    bullet.setScale(0.5); // 총알 크기 조정
 
-    // 플레이어를 향한 속도로 화살 이동
-    const velocity = this.physics.velocityFromRotation(
-        Phaser.Math.Angle.Between(x, y, 400, 300),
-        200
-    );
-    arrow.setVelocity(velocity.x, velocity.y);
+    // 총알 히트박스 크기 (60 x 60)
+    const hitboxWidth = 60 * bullet.scaleX;
+    const hitboxHeight = 60 * bullet.scaleY;
+
+    // 히트박스 초기화
+    bullet.body.setSize(hitboxWidth, hitboxHeight);
+
+    // 플레이어를 향한 속도로 총알 이동
+    const targetAngle = Phaser.Math.Angle.Between(x, y, player.x, player.y);
+    const velocity = this.physics.velocityFromRotation(targetAngle, 600); // 속도 조정
+    bullet.setVelocity(velocity.x, velocity.y);
+
+    // 총알의 방향을 플레이어를 향하게 설정 (90도 추가)
+    bullet.rotation = targetAngle + Phaser.Math.DegToRad(90);
 }
+
+
 
 function hitArrow(player, arrow) {
-    // 충돌 처리
+    // 게임 오버 처리
     this.physics.pause();
+    player.anims.stop();
     player.setTint(0xff0000);
-    scoreText.setText('Game Over');
+    isGameOver = true;
 }
 
-    </script>
+</script>
 
 </body>
 </html>

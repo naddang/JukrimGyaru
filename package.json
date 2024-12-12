@@ -1,13 +1,11 @@
 {
-  "name": "Jukrim-Gyaru",
+  "name": "run-from-moyaji",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "start": "electron .",
+    "build": "electron-builder"
   },
   "keywords": [],
   "author": "",
@@ -24,25 +22,19 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.6.0",
     "@electron-forge/plugin-fuses": "^7.6.0",
     "@electron/fuses": "^1.8.0",
-    "electron": "^33.2.1"
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.example.myphaserapp",
-    "productName": "My Phaser App",
-    "directories": {
-        "output": "dist"
+    "appId": "com.yourapp.id",
+    "win": {
+      "target": "nsis",
+      "icon": "path/to/your/icon.ico"
     },
     "files": [
-        "**/*"
-    ],
-    "win": {
-        "target": "nsis"
-    },
-    "mac": {
-        "target": "dmg"
-    },
-    "linux": {
-        "target": "AppImage"
-    }
+      "index.html",
+      "main.js",
+      "./assets/**/*"
+    ]
   }
 }
