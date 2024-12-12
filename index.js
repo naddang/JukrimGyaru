@@ -36,6 +36,7 @@ let delay = 1000;
 let touchX = null;
 let touchY = null;
 let playerSpeed = 400;
+let isTouching = false;
 
 function preload() {
   this.load.spritesheet('player', './assets/images/character/motaku.png', { frameWidth: 32, frameHeight: 32 }); // 플레이어 이미지
@@ -74,7 +75,7 @@ function create() {
   bullets = this.physics.add.group();
 
   // 화살과 플레이어 충돌 처리
-  this.physics.add.overlap(player, bullets, hitArrow, null, this);
+  this.physics.add.overlap(player, bullets, hitBullet, null, this);
 
   // 점수 표시
   scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
@@ -103,18 +104,31 @@ function create() {
 
   // 터치 입력 처리
   this.input.on('pointerdown', (pointer) => {
-    touchX = pointer.x;
-    touchY = pointer.y;
+    if (pointer.isDown) {
+      isTouching = true;
+      touchX = pointer.x;
+      touchY = pointer.y;
+    }
   });
 
   this.input.on('pointermove', (pointer) => {
-    touchX = pointer.x;
-    touchY = pointer.y;
+    if (isTouching && pointer.isDown) {
+      touchX = pointer.x;
+      touchY = pointer.y;
+    }
   });
 
-  this.input.on('pointerup', () => {
-    touchX = null;
-    touchY = null;
+  this.input.on('pointerup', (pointer) => {
+    if (!pointer.isDown) {
+      isTouching = false;
+      touchX = null;
+      touchY = null;
+    }
+  });
+
+  // 리트라이 버튼 클릭 이벤트
+  document.getElementById('retry-button').addEventListener('click', () => {
+    location.reload();
   });
 }
 
@@ -217,12 +231,22 @@ function spawnBullet() {
   bullet.rotation = targetAngle + Phaser.Math.DegToRad(90);
 }
 
-function hitArrow(player, arrow) {
+function hitBullet(player, arrow) {
+  if (isGameOver) {
+    return;
+  }
   // 게임 오버 처리
   this.physics.pause();
   player.anims.stop();
+  bullets.children.iterate(function (bullet) {
+    bullet.anims.stop();
+  });
   player.setTint(0xff0000);
   isGameOver = true;
+
+  // 게임 오버 메시지 표시
+  document.getElementById('score-text').innerText = 'Score: ' + score;
+  document.getElementById('game-over').style.display = 'block';
 }
 
 // 창 크기 변경에 따라 캔버스 크기 조정
