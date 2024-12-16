@@ -86,8 +86,8 @@ function create() {
   // 애니메이션 정의
   this.anims.create({
       key: 'walk',
-      frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
-      frameRate: 10,
+      frames: this.anims.generateFrameNumbers('player', { start: 0, end: 86 }),
+      frameRate: 30,
       repeat: -1
   });
 
