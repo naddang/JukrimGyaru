@@ -37,10 +37,12 @@ let touchX = null;
 let touchY = null;
 let playerSpeed = 400;
 let isTouching = false;
+let bgm;
 
 function preload() {
   this.load.spritesheet('player', './assets/images/character/motaku.png', { frameWidth: 32, frameHeight: 32 }); // 플레이어 이미지
   this.load.spritesheet('moyaji', './assets/images/character/moyaji.png', { frameWidth: 60, frameHeight: 60 });   // 화살 이미지
+  this.load.audio('bgm', './assets/audios/bgm/moyaji-kaju.mp3');   // BGM
 }
 
 function create() {
@@ -130,6 +132,10 @@ function create() {
   document.getElementById('retry-button').addEventListener('click', () => {
     location.reload();
   });
+
+  // BGM 재생
+  bgm = this.sound.add('bgm', { loop: true, volume: 0.5 });
+  bgm.play();
 }
 
 function update(time, delta) {
@@ -224,7 +230,7 @@ function spawnBullet() {
 
   // 플레이어를 향한 속도로 총알 이동
   const targetAngle = Phaser.Math.Angle.Between(x, y, player.x, player.y);
-  const velocity = this.physics.velocityFromRotation(targetAngle, 600); // 속도 조정
+  const velocity = this.physics.velocityFromRotation(targetAngle, 300); // 속도 조정
   bullet.setVelocity(velocity.x, velocity.y);
 
   // 총알의 방향을 플레이어를 향하게 설정 (90도 추가)
