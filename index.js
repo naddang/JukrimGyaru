@@ -43,6 +43,32 @@ function preload() {
   this.load.spritesheet('player', './assets/images/character/motaku.png', { frameWidth: 32, frameHeight: 32 }); // 플레이어 이미지
   this.load.spritesheet('moyaji', './assets/images/character/moyaji.png', { frameWidth: 60, frameHeight: 60 });   // 화살 이미지
   this.load.audio('bgm', './assets/audios/bgm/moyaji-kaju.mp3');   // BGM
+  this.load.audio('mo-dead1', './assets/audios/effects/mo-dead1.mp3');
+  this.load.audio('mo-dead2', './assets/audios/effects/mo-dead2.mp3');
+  this.load.audio('mo-dead3', './assets/audios/effects/mo-dead3.mp3');
+  this.load.audio('mo-dead4', './assets/audios/effects/mo-dead4.mp3');
+  this.load.audio('mo-dead5', './assets/audios/effects/mo-dead5.mp3');
+  this.load.audio('mo-dead6', './assets/audios/effects/mo-dead6.mp3');
+  this.load.audio('mo-dead7', './assets/audios/effects/mo-dead7.mp3');
+  this.load.audio('mo-dead8', './assets/audios/effects/mo-dead8.mp3');
+  this.load.audio('mo-dead9', './assets/audios/effects/mo-dead9.mp3');
+  this.load.audio('mo-dead10', './assets/audios/effects/mo-dead10.mp3');
+  this.load.audio('mo-dead11', './assets/audios/effects/mo-dead11.mp3');
+  this.load.audio('mo-dead12', './assets/audios/effects/mo-dead12.mp3');
+  this.load.audio('mo-dead13', './assets/audios/effects/mo-dead13.mp3');
+  this.load.audio('mo-dead14', './assets/audios/effects/mo-dead14.mp3');
+  this.load.audio('mo-dead15', './assets/audios/effects/mo-dead15.mp3');
+  this.load.audio('mo-dead16', './assets/audios/effects/mo-dead16.mp3');
+  this.load.audio('mo-dead17', './assets/audios/effects/mo-dead17.mp3');
+  this.load.audio('mo-dead18', './assets/audios/effects/mo-dead18.mp3');
+  this.load.audio('mo-dead19', './assets/audios/effects/mo-dead19.mp3');
+  this.load.audio('mo-dead20', './assets/audios/effects/mo-dead20.mp3');
+  this.load.audio('mo-dead21', './assets/audios/effects/mo-dead21.mp3');
+  this.load.audio('mo-dead22', './assets/audios/effects/mo-dead22.mp3');
+  this.load.audio('mo-dead23', './assets/audios/effects/mo-dead23.mp3');
+  this.load.audio('mo-dead24', './assets/audios/effects/mo-dead24.mp3');
+  this.load.audio('mo-dead25', './assets/audios/effects/mo-dead25.mp3');
+  this.load.audio('mo-dead26', './assets/audios/effects/mo-dead26.mp3');
 }
 
 function create() {
@@ -248,6 +274,9 @@ function hitBullet(player, arrow) {
     bullet.anims.stop();
   });
   player.setTint(0xff0000);
+  const deadAudio = this.sound.add('mo-dead' + getNumberFrom1To26());
+  deadAudio.play();
+  bgm.stop();
   isGameOver = true;
 
   // 게임 오버 메시지 표시
@@ -259,3 +288,11 @@ function hitBullet(player, arrow) {
 window.addEventListener('resize', () => {
   game.scale.resize(window.innerWidth, window.innerHeight);
 });
+
+function loadDeadSound(scene) {
+  
+}
+
+function getNumberFrom1To26() {
+  return Math.floor(Math.random() * 26) + 1;
+}
